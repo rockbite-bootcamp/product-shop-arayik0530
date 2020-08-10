@@ -2,9 +2,9 @@ package com.company;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Set;
+import java.util.Map;
 
 
 /**
@@ -13,14 +13,14 @@ import java.util.Set;
 public class ShopImpl implements IShop {
 
     //items taken from buyers
-    private List<Item> itemsInCashDesk;
+    private Map<Integer, Item> itemsInCashDesk;
 
     //products to be sold in the shop
     private List<Product> products;
 
     public ShopImpl() {
         this.products = new ArrayList<>();
-        this.itemsInCashDesk = new ArrayList<>();
+        this.itemsInCashDesk = new HashMap<>();
     }
 
     @Override
@@ -30,107 +30,84 @@ public class ShopImpl implements IShop {
 
     @Override
     public void buy(final Player buyer, final Product product) throws IOException, ClassNotFoundException {
-        //deep clone of Product's payload
-        List<Item> copyOfPayloadItems = new ArrayList<>();
-        for (Item payloadItem : product.getPayload()) {
-            copyOfPayloadItems.add(payloadItem.deepClone());
-        }
 
         //deep clone of Player's items
-        List<Item> copyOfPlayerItems = new ArrayList<>();
-        for (Item playerItem : buyer.getItems()) {
-            copyOfPlayerItems.add(playerItem.deepClone());
+        Map<Integer, Item> copyOfPlayerItems = new HashMap<>();
+        for (Map.Entry<Integer, Item> playerItem : buyer.getItems().entrySet()) {
+            copyOfPlayerItems.put(playerItem.getKey(), playerItem.getValue().deepClone());
         }
 
         //deep clone of items in the cash desk
-        List<Item> copyOfCashDesk = new ArrayList<>();
-        for (Item item : this.itemsInCashDesk) {
-            copyOfCashDesk.add(item.deepClone());
+        Map<Integer, Item> copyOfCashDesk = new HashMap<>();
+        for (Map.Entry<Integer, Item> cashDeskItem : this.itemsInCashDesk.entrySet()) {
+            copyOfCashDesk.put(cashDeskItem.getKey(), cashDeskItem.getValue().deepClone());
         }
 
-        //temp list is added to avoid concurrentModificationException
-        List<Item> tempItemsToRemove = new ArrayList<>();
+        //deep clone of product's payload
+        Map<Integer, Item> copyOfPayloadItems = new HashMap<>();
+        for (Map.Entry<Integer, Item> payloadItem : product.getPayload().entrySet()) {
+            copyOfPayloadItems.put(payloadItem.getKey(), payloadItem.getValue().deepClone());
+        }
 
-        for (Item costItem : product.getCost()) {
-            int count = 0;
-            for (Item playerItem : buyer.getItems()) {
-                if (costItem.getId() == playerItem.getId()) {
-                    ++count;
-                    if (playerItem.getCount() - costItem.getCount() >= 0) {
-                        playerItem.setCount(playerItem.getCount() - costItem.getCount());
-                        if (playerItem.getCount() == 0) {
-                            tempItemsToRemove.add(playerItem);
-                        }
-                    } else {
+        for (int costItemId : product.getCost().keySet()) {
 
-                        //rollback
-                        product.setPayload(copyOfPayloadItems);
-                        buyer.setItems(copyOfPlayerItems);
-                        this.itemsInCashDesk = copyOfCashDesk;
-                        //rollback
+            Item buyerItem = buyer.getItems().get(costItemId);
+            Item costItem = product.getCost().get(costItemId);
 
-                        throw new TransactionFailedException("The player does not have enough count of required item " +
-                                costItem);
-                    }
+            if (buyer.getItems().containsKey(costItemId)) {
+                if (buyerItem.getCount() >= costItem.getCount()) {
+                    this.transfer(this.itemsInCashDesk, buyer.getItems(), costItemId, costItem.getCount());
+                } else {
+                    //rollBack
+                    buyer.setItems(copyOfPlayerItems);
+                    this.itemsInCashDesk = copyOfCashDesk;
+
+                    throw new TransactionFailedException("The player does not have enough count of required item " +
+                            product.getCost().get(costItemId));
                 }
-            }
-            if (count == 0) {
-                //rollback
-                product.setPayload(copyOfPayloadItems);
+            } else {
+                //rollBack
                 buyer.setItems(copyOfPlayerItems);
                 this.itemsInCashDesk = copyOfCashDesk;
-                //rollback
+
                 throw new TransactionFailedException("The player does not have required item" +
                         costItem);
             }
         }
 
-        buyer.getItems().removeAll(tempItemsToRemove);
-
-        //adding bought product items to player item list start--->
-
-        //temp set is added to avoid concurrentModificationException
-        Set<Item> tempItemsToAdd = new HashSet<>();
-
-        for (Item payloadItem : product.getPayload()) {
-
-            for (Item playerItem : buyer.getItems()) {
-                if (payloadItem.getId() == playerItem.getId()) {
-                    playerItem.setCount(playerItem.getCount() + payloadItem.getCount());
-                } else {
-                    tempItemsToAdd.add(payloadItem);
-                }
-            }
+        //adding product's payload to player's items
+        // iterating over copyOfPayload instead of it to avoid ConcurrentModificationException
+        for (int payloadItemId : copyOfPayloadItems.keySet()) {
+            this.transfer(buyer.getItems(), product.getPayload(),
+                    payloadItemId, product.getPayload().get(payloadItemId).getCount());
         }
 
-        buyer.getItems().addAll(tempItemsToAdd);
-        //adding bought product items to player item list <---end
-
-        //removing sold product from the shop
+        // removing sold product from the shop
         this.products.remove(product);
+    }
 
-        //adding cost payload to the cash desk
+    /**
+     * helper method: transfers the whole item or some count of it from one map to another
+     *
+     * @param mapTo          increasing map
+     * @param mapFrom        decreasing map
+     * @param requiredItemId key for entry
+     */
+    private void transfer(final Map<Integer, Item> mapTo, final Map<Integer, Item> mapFrom, final int requiredItemId,
+                          final int count) {
+        if (!mapTo.containsKey(requiredItemId)) {
+            Item tempItem = new Item(requiredItemId, mapFrom.get(requiredItemId).getType());
+            mapTo.put(requiredItemId, tempItem);
+        }
 
-        if (itemsInCashDesk.size() == 0) {
-            itemsInCashDesk.addAll(product.getCost());
-        } else {
-            //temp set is added to avoid concurrentModificationException
-            Set<Item> tempItemsToAddInDesk = new HashSet<>();
+        Item decreasedItem = mapFrom.get(requiredItemId);
+        decreasedItem.setCount(decreasedItem.getCount() - count);
 
-            for (Item costItem : product.getCost()) {
+        Item increasedItem = mapTo.get(requiredItemId);
+        increasedItem.setCount(increasedItem.getCount() + count);
 
-                for (Item deskItem : itemsInCashDesk) {
-
-                    if (costItem.getId() == deskItem.getId()) {
-                        deskItem.setCount(costItem.getCount() + deskItem.getCount());
-                    } else {
-                        tempItemsToAddInDesk.add(costItem);
-                    }
-
-                }
-            }
-
-            this.itemsInCashDesk.addAll(tempItemsToAddInDesk);
+        if (decreasedItem.getCount() == 0) {
+            mapFrom.remove(requiredItemId);
         }
     }
 

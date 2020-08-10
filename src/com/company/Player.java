@@ -1,7 +1,7 @@
 package com.company;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Player or buyer who makes transaction in the shop
@@ -12,7 +12,7 @@ public class Player {
     private int id;
 
     //items that player holds
-    private List<Item> items = new ArrayList<>();
+    private Map<Integer, Item> items = new HashMap<>();
 
     public int getId() {
         return id;
@@ -26,11 +26,11 @@ public class Player {
         this.id = id;
     }
 
-    public List<Item> getItems() {
+    public Map<Integer, Item> getItems() {
         return items;
     }
 
-    public void setItems(final List<Item> items) {
+    public void setItems(final Map<Integer, Item> items) {
         this.items = items;
     }
 

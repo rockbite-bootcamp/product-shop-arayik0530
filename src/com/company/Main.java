@@ -5,7 +5,7 @@ package com.company;
  */
 public class Main {
 
-    public static void main(String[] args) throws Exception{
+    public static void main(String[] args) {
         IShop shop = new ShopImpl();
 
         Type typePhone = new Type("phone");
@@ -18,8 +18,9 @@ public class Main {
         pistol.setCount(1);
 
         Product product1 = new Product();
-        product1.getPayload().add(iPhone);
-        product1.getPayload().add(pistol);
+        product1.setId(1);
+        product1.getPayload().put(iPhone.getId(), iPhone);
+        product1.getPayload().put(pistol.getId(), pistol);
 
         Category sale = new Category("SALE");
         product1.setCategory(sale);
@@ -34,7 +35,7 @@ public class Main {
 
         AMD.setCount(100);
         BMW_1.setCount(2);
-        shoe_1.setCount(4);
+        shoe_1.setCount(1);
 
         Item BMW_2 = new Item(4, typeCar);
         Item shoe_2 = new Item(5, typeShoe);
@@ -42,8 +43,8 @@ public class Main {
         BMW_2.setCount(1);
         shoe_2.setCount(2);
 
-        product1.getCost().add(BMW_2);
-        product1.getCost().add(shoe_2);
+        product1.getCost().put(BMW_2.getId(), BMW_2);
+        product1.getCost().put(shoe_2.getId(), shoe_2);
 
 
         shop.add(product1);
@@ -52,16 +53,21 @@ public class Main {
         System.out.println(shop); //TODO must be removed
 
 
-	    Player player1 = new Player(1);
+        Player player1 = new Player(1);
 
-	    player1.getItems().add(AMD);
-	    player1.getItems().add(BMW_1);
-	    player1.getItems().add(shoe_1);
+        player1.getItems().put(AMD.getId(), AMD);
+        player1.getItems().put(BMW_1.getId(), BMW_1);
+        player1.getItems().put(shoe_1.getId(), shoe_1);
 
         System.out.println("Player before any transaction");//TODO must be removed
         System.out.println(player1); //TODO must be removed
 
-        shop.buy(player1, product1);
+        try {
+            shop.buy(player1, product1);
+        }
+        catch (Exception e){
+            e.printStackTrace();
+        }
 
         System.out.println("Shop after the transaction");//TODO must be removed
         System.out.println(shop); //TODO must be removed

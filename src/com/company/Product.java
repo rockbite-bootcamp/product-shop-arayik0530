@@ -1,7 +1,7 @@
 package com.company;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Product which must be sold in the shop
@@ -15,10 +15,10 @@ public class Product {
     private Category category;
 
     //payload of the product
-    private List<Item> payload = new ArrayList<>();
+    private Map<Integer, Item> payload = new HashMap<>();
 
     //cost of the product
-    private List<Item> cost = new ArrayList<>();
+    private Map<Integer, Item> cost = new HashMap<>();
 
 
     public int getId() {
@@ -37,19 +37,19 @@ public class Product {
         this.category = category;
     }
 
-    public List<Item> getPayload() {
+    public Map<Integer, Item> getPayload() {
         return payload;
     }
 
-    public void setPayload(final List<Item> payload) {
+    public void setPayload(final Map<Integer, Item> payload) {
         this.payload = payload;
     }
 
-    public List<Item> getCost() {
+    public Map<Integer, Item> getCost() {
         return cost;
     }
 
-    public void setCost(final List<Item> cost) {
+    public void setCost(final Map<Integer, Item> cost) {
         this.cost = cost;
     }
 

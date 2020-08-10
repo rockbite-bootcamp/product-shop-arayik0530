@@ -15,13 +15,15 @@ public interface IShop {
 
     /**
      * Player can buy a product from the shop via this method
+     *
      * @param buyer
      * @param product
      */
-    void buy (Player buyer, Product product) throws IOException, ClassNotFoundException;
+    void buy(Player buyer, Product product) throws IOException, ClassNotFoundException;
 
     /**
      * Adding products to the shop initially
+     *
      * @param product
      */
     void add(Product product);

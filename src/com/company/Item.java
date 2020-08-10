@@ -51,6 +51,7 @@ public class Item implements Serializable {
 
     /**
      * This method is custom implementation to make a deep copy, not an overridden version of the Object class's method
+     *
      * @return Item
      * @throws IOException
      * @throws ClassNotFoundException
@@ -62,10 +63,10 @@ public class Item implements Serializable {
         out.writeObject(this);
 
         //De-serialization of object
-        ByteArrayInputStream bis = new   ByteArrayInputStream(bos.toByteArray());
+        ByteArrayInputStream bis = new ByteArrayInputStream(bos.toByteArray());
         ObjectInputStream in = new ObjectInputStream(bis);
 
-        return (Item)in.readObject();
+        return (Item) in.readObject();
     }
 
     @Override
