@@ -1,4 +1,4 @@
-package com.company;
+package com.rockbite.bootcamp;
 
 /**
  * The main class to bootstrap SHOP API

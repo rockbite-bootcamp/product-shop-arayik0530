@@ -1,4 +1,4 @@
-package com.company;
+package com.rockbite.bootcamp;
 
 import java.util.HashMap;
 import java.util.Map;

@@ -1,4 +1,4 @@
-package com.company;
+package com.rockbite.bootcamp;
 
 import java.io.*;
 import java.util.Objects;

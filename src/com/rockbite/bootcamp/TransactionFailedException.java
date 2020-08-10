@@ -1,4 +1,4 @@
-package com.company;
+package com.rockbite.bootcamp;
 
 /**
  * custom exception to describe transaction failure situations

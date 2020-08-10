@@ -1,4 +1,4 @@
-package com.company;
+package com.rockbite.bootcamp;
 
 /**
  * This class is used to describe product's category
