@@ -4,7 +4,11 @@ import com.rockbite.bootcamp.util.command.BuyCommand;
 import com.rockbite.bootcamp.util.command.Command;
 import com.rockbite.bootcamp.util.command.CommandManager;
 import com.rockbite.bootcamp.util.command.UndoBuyCommand;
+import com.rockbite.bootcamp.util.observer.Subject;
+import com.rockbite.bootcamp.util.observer.TransactionObserver;
 import com.rockbite.bootcamp.util.pool.Pool;
+
+import java.util.Observer;
 
 /**
  * The main class to bootstrap SHOP API
@@ -13,6 +17,9 @@ public class Main {
 
     public static void main(String[] args) {
         IShop shop = ShopImpl.getInstance();
+
+        Subject transactionSubject = new Subject(shop.showProducts().size());
+        TransactionObserver transactionObserver = new TransactionObserver(transactionSubject);
 
         Type typePhone = new Type("phone");
         Type typeWeapon = new Type("weapon");
@@ -54,6 +61,8 @@ public class Main {
 
 
         shop.add(product1);
+        transactionSubject.setState(shop.showProducts().size());
+
 
         System.out.println("Shop before any transaction");//TODO must be removed
         System.out.println(shop); //TODO must be removed
@@ -82,6 +91,8 @@ public class Main {
             e.printStackTrace();
         }
 
+        transactionSubject.setState(shop.showProducts().size());
+
         System.out.println("Shop after the transaction");//TODO must be removed
         System.out.println(shop); //TODO must be removed
 
@@ -95,6 +106,8 @@ public class Main {
         } catch (Exception e) {
             e.printStackTrace();
         }
+
+        transactionSubject.setState(shop.showProducts().size());
 
         System.out.println("Shop after the undo transaction");//TODO must be removed
         System.out.println(shop); //TODO must be removed
