@@ -28,4 +28,5 @@ public interface IShop {
      */
     void add(Product product);
 
+    void undoBuy(Player buyer, Product product)  throws Exception;
 }

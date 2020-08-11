@@ -9,8 +9,11 @@ import java.util.Map;
 
 /**
  * implementation of the IShop interface, represents shop API
+ * in current version it have to be a singleton to make easy to implement command pattern on it
  */
 public class ShopImpl implements IShop {
+
+    private static ShopImpl instance;
 
     //items taken from buyers
     private Map<Integer, Item> itemsInCashDesk;
@@ -18,9 +21,18 @@ public class ShopImpl implements IShop {
     //products to be sold in the shop
     private List<Product> products;
 
-    public ShopImpl() {
+    private Map<Integer, Product> soldProducts;
+
+    private ShopImpl() {
         this.products = new ArrayList<>();
+        this.soldProducts = new HashMap<>();
         this.itemsInCashDesk = new HashMap<>();
+    }
+
+    public static ShopImpl getInstance() {
+        if (instance == null)
+            instance = new ShopImpl();
+        return instance;
     }
 
     @Override
@@ -28,6 +40,13 @@ public class ShopImpl implements IShop {
         return this.products;
     }
 
+    /**
+     * with this method the PLayer/buyer buys a product from the shop
+     * @param buyer PLayer
+     * @param product Product which is being sold in the shop
+     * @throws IOException
+     * @throws ClassNotFoundException
+     */
     @Override
     public void buy(final Player buyer, final Product product) throws IOException, ClassNotFoundException {
 
@@ -82,7 +101,9 @@ public class ShopImpl implements IShop {
                     payloadItemId, product.getPayload().get(payloadItemId).getCount());
         }
 
-        // removing sold product from the shop
+        // removing sold product from the product list and adding it in sold products
+        product.setPayload(copyOfPayloadItems);
+        this.soldProducts.put(product.getId(), product);
         this.products.remove(product);
     }
 
@@ -116,6 +137,30 @@ public class ShopImpl implements IShop {
         this.products.add(product);
     }
 
+    /**
+     * right vice versa method for method buy
+     * @param buyer PLayer
+     * @param product Product which is being sold in the shop
+     * @throws Exception
+     */
+    @Override
+    public void undoBuy(final Player buyer, final Product product) throws Exception {
+
+
+        for (int costItemId : product.getCost().keySet()) {
+            this.transfer(buyer.getItems(), this.itemsInCashDesk, costItemId,
+                    product.getCost().get(costItemId).getCount());
+        }
+
+        this.products.add(this.soldProducts.remove(product.getId()));
+
+        for (int payloadItemId : product.getPayload().keySet()) {
+
+            this.transfer(new HashMap<>(), buyer.getItems(), payloadItemId,
+                    product.getPayload().get(payloadItemId).getCount());
+        }
+    }
+
 
     public void setProducts(final List<Product> products) {
         this.products = products;
@@ -126,6 +171,7 @@ public class ShopImpl implements IShop {
         return "Shop{" +
                 "itemsInCashDesk=" + itemsInCashDesk +
                 ", products=" + products +
+                ", soldProducts=" + soldProducts +
                 '}';
     }
 }

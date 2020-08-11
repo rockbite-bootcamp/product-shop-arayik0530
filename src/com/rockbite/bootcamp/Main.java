@@ -1,12 +1,18 @@
 package com.rockbite.bootcamp;
 
+import com.rockbite.bootcamp.util.command.BuyCommand;
+import com.rockbite.bootcamp.util.command.Command;
+import com.rockbite.bootcamp.util.command.CommandManager;
+import com.rockbite.bootcamp.util.command.UndoBuyCommand;
+import com.rockbite.bootcamp.util.pool.Pool;
+
 /**
  * The main class to bootstrap SHOP API
  */
 public class Main {
 
     public static void main(String[] args) {
-        IShop shop = new ShopImpl();
+        IShop shop = ShopImpl.getInstance();
 
         Type typePhone = new Type("phone");
         Type typeWeapon = new Type("weapon");
@@ -35,7 +41,7 @@ public class Main {
 
         AMD.setCount(100);
         BMW_1.setCount(2);
-        shoe_1.setCount(1);
+        shoe_1.setCount(4);
 
         Item BMW_2 = new Item(4, typeCar);
         Item shoe_2 = new Item(5, typeShoe);
@@ -61,11 +67,18 @@ public class Main {
 
         System.out.println("Player before any transaction");//TODO must be removed
         System.out.println(player1); //TODO must be removed
+        System.out.println("-------------------------------------------------------------------------------");//TODO must be removed
+
+        CommandManager commandManager = new CommandManager();
+
+        Pool<BuyCommand> buyCommandPool = commandManager.getBuyCommandPool();
+        Pool<UndoBuyCommand> undoBuyCommandPool = commandManager.getUndoBuyCommandPool();
 
         try {
-            shop.buy(player1, product1);
-        }
-        catch (Exception e){
+            BuyCommand buyCommand = buyCommandPool.obtain();
+            commandManager.executeCommand(buyCommand, player1, product1);
+            buyCommandPool.free(buyCommand);
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
@@ -73,6 +86,20 @@ public class Main {
         System.out.println(shop); //TODO must be removed
 
         System.out.println("Player after the transaction");//TODO must be removed
+        System.out.println(player1); //TODO must be removed
+
+        System.out.println("-------------------------------------------------------------------------------");//TODO must be removed
+
+        try {
+            commandManager.undo(player1, product1);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        System.out.println("Shop after the undo transaction");//TODO must be removed
+        System.out.println(shop); //TODO must be removed
+
+        System.out.println("Player after the undo transaction");//TODO must be removed
         System.out.println(player1); //TODO must be removed
     }
 }
