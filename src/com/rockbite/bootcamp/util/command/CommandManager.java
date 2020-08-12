@@ -1,7 +1,6 @@
 package com.rockbite.bootcamp.util.command;
 
 import com.rockbite.bootcamp.Player;
-import com.rockbite.bootcamp.Product;
 import com.rockbite.bootcamp.util.pool.Pool;
 
 import java.util.ArrayList;
@@ -14,7 +13,7 @@ public class CommandManager {
     //history of commands
     List<Command> history = new ArrayList<>();
     //cursor shows when we are in the history
-    private int cursor = 0;
+    private int historyCursor = 0;
 
     //pool of buy commands
     Pool<BuyCommand> buyCommandPool = new Pool<BuyCommand>() {
@@ -25,10 +24,10 @@ public class CommandManager {
     };
 
     //pool of undo buy commands
-    Pool<UndoBuyCommand> undoBuyCommandPool = new Pool<UndoBuyCommand>() {
+    Pool<RefundCommand> undoBuyCommandPool = new Pool<RefundCommand>() {
         @Override
-        public UndoBuyCommand newObject() {
-            return new UndoBuyCommand();
+        public RefundCommand newObject() {
+            return new RefundCommand();
         }
     };
 
@@ -36,67 +35,56 @@ public class CommandManager {
      * main method of this class, it represents execution of main command
      * @param command Command
      * @param buyer PLayer
-     * @param product Product
-     * @throws Exception
+     * @param productId unique id of the Product
      */
-    public void executeCommand(Command command, Player buyer, Product product) throws Exception {
-        command.execute(buyer, product);
+    public void executeCommand(Command command, Player buyer, int productId){
+        command.execute(buyer, productId);
 
-        if (cursor < history.size()) {
-            history.set(cursor, command);
+        if (historyCursor < history.size()) {
+            history.set(historyCursor, command);
         } else {
             history.add(command);
         }
 
-        cursor++;
+        historyCursor++;
     }
 
 
     /**
      * undo the last command
      * @param buyer PLayer
-     * @param product Product
-     * @throws Exception
+     * @param productId unique id of the Product
      */
-    public void undo(Player buyer, Product product) throws Exception {
-        if (cursor == 0) return;
+    public void undo(Player buyer, int productId) {
+        if (historyCursor == 0) return;
 
-        Command command = history.get(cursor - 1);
-        command.undo(buyer, product);
+        Command command = history.get(historyCursor - 1);
+        command.undo(buyer, productId);
 
-        cursor--;
+        historyCursor--;
     }
 
     /**
      * redo the last undone command
      * @param buyer Player
-     * @param product Product
-     * @throws Exception
+     * @param productId unique id of the Product
      */
-    public void redo(Player buyer, Product product) throws Exception {
-        if (cursor > history.size() - 1) return;
+    public void redo(Player buyer, int productId) {
+        if (historyCursor > history.size() - 1) return;
 
-        Command command = history.get(cursor);
-        command.execute(buyer, product);
-        cursor++;
+        Command command = history.get(historyCursor);
+        command.execute(buyer, productId);
+        historyCursor++;
     }
 
 
     //Getters
 
-    public List<Command> getHistory() {
-        return history;
-    }
-
-    public int getCursor() {
-        return cursor;
-    }
-
     public Pool<BuyCommand> getBuyCommandPool() {
         return buyCommandPool;
     }
 
-    public Pool<UndoBuyCommand> getUndoBuyCommandPool() {
+    public Pool<RefundCommand> getUndoBuyCommandPool() {
         return undoBuyCommandPool;
     }
 }

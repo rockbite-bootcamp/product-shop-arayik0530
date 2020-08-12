@@ -6,15 +6,15 @@ import java.util.List;
 /**
  * Subject to which observers are subscribed
  */
-public class Subject {
+public class ObservationSubject {
 
     //observers
-    private List<Observer> observers;
+    private final List<Observer> observers;
 
     //subjects state
     private int productListLength;
 
-    public Subject(final int productListLength) {
+    public ObservationSubject(final int productListLength) {
         this.observers = new ArrayList<>();
         this.productListLength = productListLength;
     }

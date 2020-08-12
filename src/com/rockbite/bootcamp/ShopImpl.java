@@ -1,10 +1,13 @@
 package com.rockbite.bootcamp;
 
+import com.rockbite.bootcamp.util.ArgumentsHolder;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 
 /**
@@ -13,19 +16,17 @@ import java.util.Map;
  */
 public class ShopImpl implements IShop {
 
+    //Single instance for the whole application
     private static ShopImpl instance;
 
     //items taken from buyers
-    private Map<Integer, Item> itemsInCashDesk;
+    private final Map<Integer, Item> itemsInCashDesk;
 
     //products to be sold in the shop
-    private List<Product> products;
-
-    private Map<Integer, Product> soldProducts;
+    private final Map<Integer, Product> products;
 
     private ShopImpl() {
-        this.products = new ArrayList<>();
-        this.soldProducts = new HashMap<>();
+        this.products = new HashMap<>();
         this.itemsInCashDesk = new HashMap<>();
     }
 
@@ -36,37 +37,22 @@ public class ShopImpl implements IShop {
     }
 
     @Override
-    public List<Product> showProducts() {
-        return this.products;
+    public List<Product> getAvailableProducts() {
+        return this.products.values().stream().filter(p -> !p.isSold()).collect(Collectors.toList());
     }
 
     /**
      * with this method the PLayer/buyer buys a product from the shop
      * @param buyer PLayer
-     * @param product Product which is being sold in the shop
-     * @throws IOException
-     * @throws ClassNotFoundException
+     * @param productId id of Product which is being sold in the shop
      */
     @Override
-    public void buy(final Player buyer, final Product product) throws IOException, ClassNotFoundException {
+    public void buy(final Player buyer, final int productId) {
+        //product with id productId
+        final Product product = this.products.get(productId);
 
-        //deep clone of Player's items
-        Map<Integer, Item> copyOfPlayerItems = new HashMap<>();
-        for (Map.Entry<Integer, Item> playerItem : buyer.getItems().entrySet()) {
-            copyOfPlayerItems.put(playerItem.getKey(), playerItem.getValue().deepClone());
-        }
-
-        //deep clone of items in the cash desk
-        Map<Integer, Item> copyOfCashDesk = new HashMap<>();
-        for (Map.Entry<Integer, Item> cashDeskItem : this.itemsInCashDesk.entrySet()) {
-            copyOfCashDesk.put(cashDeskItem.getKey(), cashDeskItem.getValue().deepClone());
-        }
-
-        //deep clone of product's payload
-        Map<Integer, Item> copyOfPayloadItems = new HashMap<>();
-        for (Map.Entry<Integer, Item> payloadItem : product.getPayload().entrySet()) {
-            copyOfPayloadItems.put(payloadItem.getKey(), payloadItem.getValue().deepClone());
-        }
+        // argumentsHolderList. transfer method will be called with every element of this list in the end
+        List<ArgumentsHolder> argumentsHolderList = new ArrayList<>();
 
         for (int costItemId : product.getCost().keySet()) {
 
@@ -75,103 +61,135 @@ public class ShopImpl implements IShop {
 
             if (buyer.getItems().containsKey(costItemId)) {
                 if (buyerItem.getCount() >= costItem.getCount()) {
-                    this.transfer(this.itemsInCashDesk, buyer.getItems(), costItemId, costItem.getCount());
+                    argumentsHolderList.add(new ArgumentsHolder(this.itemsInCashDesk, buyer.getItems(),
+                            costItemId, costItem.getCount()));
                 } else {
-                    //rollBack
-                    buyer.setItems(copyOfPlayerItems);
-                    this.itemsInCashDesk = copyOfCashDesk;
 
                     throw new TransactionFailedException("The player does not have enough count of required item " +
                             product.getCost().get(costItemId));
                 }
             } else {
-                //rollBack
-                buyer.setItems(copyOfPlayerItems);
-                this.itemsInCashDesk = copyOfCashDesk;
 
                 throw new TransactionFailedException("The player does not have required item" +
                         costItem);
             }
         }
 
-        //adding product's payload to player's items
-        // iterating over copyOfPayload instead of it to avoid ConcurrentModificationException
-        for (int payloadItemId : copyOfPayloadItems.keySet()) {
-            this.transfer(buyer.getItems(), product.getPayload(),
-                    payloadItemId, product.getPayload().get(payloadItemId).getCount());
+        //getting a map from payload
+        Map<Integer, Item> payloadMap = new HashMap<>();
+        for (int i = 0; i < product.getPayload().length; i++) {
+            payloadMap.put(product.getPayload()[i].getId(), product.getPayload()[i]);
         }
 
-        // removing sold product from the product list and adding it in sold products
-        product.setPayload(copyOfPayloadItems);
-        this.soldProducts.put(product.getId(), product);
-        this.products.remove(product);
+        //adding product's payload to player's items
+        for (int payloadItemId : payloadMap.keySet()) {
+            this.transferPayload(new ArgumentsHolder(buyer.getItems(), payloadMap,
+                    payloadItemId, payloadMap.get(payloadItemId).getCount()));
+        }
+
+        // removing sold product from the available productList and adding it in sold products
+        product.setSold(true);
+
+        //after checking above that current player can buy current product we can call transfer method
+        for (ArgumentsHolder argumentsHolder: argumentsHolderList) {
+            this.transfer(argumentsHolder);
+        }
     }
 
     /**
      * helper method: transfers the whole item or some count of it from one map to another
-     *
-     * @param mapTo          increasing map
-     * @param mapFrom        decreasing map
-     * @param requiredItemId key for entry
+     * @param argumentsHolder holds: mapTo - increasing map, mapFrom - decreasing map,
+     *                        requiredItemId - key for entry, count - count of transferring item
      */
-    private void transfer(final Map<Integer, Item> mapTo, final Map<Integer, Item> mapFrom, final int requiredItemId,
-                          final int count) {
-        if (!mapTo.containsKey(requiredItemId)) {
-            Item tempItem = new Item(requiredItemId, mapFrom.get(requiredItemId).getType());
-            mapTo.put(requiredItemId, tempItem);
+    private void transfer(final ArgumentsHolder argumentsHolder) {
+        if (!argumentsHolder.getMapTo().containsKey(argumentsHolder.getRequiredItemId())) {
+            Item tempItem = new Item(argumentsHolder.getRequiredItemId(),
+                    argumentsHolder.getMapFrom().get(argumentsHolder.getRequiredItemId()).getItemType());
+            argumentsHolder.getMapTo().put(argumentsHolder.getRequiredItemId(), tempItem);
         }
 
-        Item decreasedItem = mapFrom.get(requiredItemId);
-        decreasedItem.setCount(decreasedItem.getCount() - count);
+        Item decreasedItem = argumentsHolder.getMapFrom().get(argumentsHolder.getRequiredItemId());
+        decreasedItem.setCount(decreasedItem.getCount() - argumentsHolder.getCount());
 
-        Item increasedItem = mapTo.get(requiredItemId);
-        increasedItem.setCount(increasedItem.getCount() + count);
+        Item increasedItem = argumentsHolder.getMapTo().get(argumentsHolder.getRequiredItemId());
+        increasedItem.setCount(increasedItem.getCount() + argumentsHolder.getCount());
 
         if (decreasedItem.getCount() == 0) {
-            mapFrom.remove(requiredItemId);
+            argumentsHolder.getMapFrom().remove(argumentsHolder.getRequiredItemId());
         }
     }
 
+    /**
+     * helper method: transfers the whole item or some count of it from one map to another
+     * but the decreasing map actually does'nt lose any Item or any count of Item
+     * @param argumentsHolder holds: mapTo - increasing map, mapFrom - decreasing map,
+     *                        requiredItemId - key for entry, count - count of transferring item
+     */
+    private void transferPayload(final ArgumentsHolder argumentsHolder){
+        if (!argumentsHolder.getMapTo().containsKey(argumentsHolder.getRequiredItemId())) {
+            Item tempItem = new Item(argumentsHolder.getRequiredItemId(),
+                    argumentsHolder.getMapFrom().get(argumentsHolder.getRequiredItemId()).getItemType());
+            argumentsHolder.getMapTo().put(argumentsHolder.getRequiredItemId(), tempItem);
+        }
+
+        Item increasedItem = argumentsHolder.getMapTo().get(argumentsHolder.getRequiredItemId());
+        increasedItem.setCount(increasedItem.getCount() + argumentsHolder.getCount());
+    }
+
     @Override
-    public void add(final Product product) {
-        this.products.add(product);
+    public void addProduct(final int productId, final Product product) {
+        this.products.put(product.getId(), product);
     }
 
     /**
      * right vice versa method for method buy
      * @param buyer PLayer
-     * @param product Product which is being sold in the shop
-     * @throws Exception
+     * @param productId unique id of the Product which is being returned to the shop
      */
     @Override
-    public void undoBuy(final Player buyer, final Product product) throws Exception {
+    public void refund(final Player buyer, final int productId) {
+        //product with id productId
+        final Product product = this.products.get(productId);
 
+        // argumentsHolderList. transfer method will be called with every element of this list in the end
+        List<ArgumentsHolder> argumentsHolderList = new ArrayList<>();
 
         for (int costItemId : product.getCost().keySet()) {
-            this.transfer(buyer.getItems(), this.itemsInCashDesk, costItemId,
-                    product.getCost().get(costItemId).getCount());
+            argumentsHolderList.add(new ArgumentsHolder(buyer.getItems(), this.itemsInCashDesk, costItemId,
+                    product.getCost().get(costItemId).getCount()));
         }
 
-        this.products.add(this.soldProducts.remove(product.getId()));
-
-        for (int payloadItemId : product.getPayload().keySet()) {
-
-            this.transfer(new HashMap<>(), buyer.getItems(), payloadItemId,
-                    product.getPayload().get(payloadItemId).getCount());
+        //getting a map from payload
+        Map<Integer, Item> payloadMap = new HashMap<>();
+        for (int i = 0; i < product.getPayload().length; i++) {
+            payloadMap.put(product.getPayload()[i].getId(), product.getPayload()[i]);
         }
+
+        //pseudo map
+        Map<Integer, Item> tempMap = new HashMap<>();
+
+        for (int payloadItemId : payloadMap.keySet()) {
+
+            argumentsHolderList.add(new ArgumentsHolder(tempMap, buyer.getItems(), payloadItemId,
+                    payloadMap.get(payloadItemId).getCount()));
+        }
+
+        //calling transfer method for appropriate items and maps to complete refund method
+        for (ArgumentsHolder argumentsHolder: argumentsHolderList) {
+            this.transfer(argumentsHolder);
+        }
+
+        // removing returned product from the sold products to available productList
+        product.setSold(false);
     }
 
-
-    public void setProducts(final List<Product> products) {
-        this.products = products;
-    }
 
     @Override
     public String toString() {
         return "Shop{" +
                 "itemsInCashDesk=" + itemsInCashDesk +
-                ", products=" + products +
-                ", soldProducts=" + soldProducts +
+                ", products=" + products.values().stream().filter(p -> !p.isSold()).collect(Collectors.toList()) +
+                ", soldProducts=" + products.values().stream().filter(Product::isSold).collect(Collectors.toList()) +
                 '}';
     }
 }

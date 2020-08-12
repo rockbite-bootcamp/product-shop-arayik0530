@@ -7,25 +7,25 @@ import java.util.Objects;
  * Item class is to describe items in the shop
  * It implements Serializable to make deep copy
  */
-public class Item implements Serializable {
+public class Item {
 
     //unique identifier
-    private int id;
+    private final int id;
 
     //Type of the item
-    private Type type;
+    private final ItemType itemType;
 
     //count of things of the same type in the item
     private int count;
 
-    public Item(final int id, final Type type) {
+    public Item(final int id, final ItemType itemType) {
         this.id = id;
-        this.type = type;
+        this.itemType = itemType;
         this.count = 0;
     }
 
-    public Type getType() {
-        return type;
+    public ItemType getItemType() {
+        return itemType;
     }
 
     public int getCount() {
@@ -44,29 +44,9 @@ public class Item implements Serializable {
     public String toString() {
         return "Item{" +
                 "id=" + id +
-                ", type=" + type +
+                ", type=" + itemType +
                 ", count=" + count +
                 '}';
-    }
-
-    /**
-     * This method is custom implementation to make a deep copy, not an overridden version of the Object class's method
-     *
-     * @return Item
-     * @throws IOException
-     * @throws ClassNotFoundException
-     */
-    protected Item deepClone() throws IOException, ClassNotFoundException {
-        //Serialization of object
-        ByteArrayOutputStream bos = new ByteArrayOutputStream();
-        ObjectOutputStream out = new ObjectOutputStream(bos);
-        out.writeObject(this);
-
-        //De-serialization of object
-        ByteArrayInputStream bis = new ByteArrayInputStream(bos.toByteArray());
-        ObjectInputStream in = new ObjectInputStream(bis);
-
-        return (Item) in.readObject();
     }
 
     @Override
@@ -76,12 +56,12 @@ public class Item implements Serializable {
         final Item item = (Item) o;
         return getId() == item.getId() &&
                 getCount() == item.getCount() &&
-                Objects.equals(getType(), item.getType());
+                Objects.equals(getItemType(), item.getItemType());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(getId(), getType(), getCount());
+        return Objects.hash(getId(), getItemType(), getCount());
     }
 }
 

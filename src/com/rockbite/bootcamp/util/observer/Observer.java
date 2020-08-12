@@ -6,7 +6,7 @@ package com.rockbite.bootcamp.util.observer;
 public abstract class Observer {
 
     //a subject to which's state this class must subscribe
-    public Subject subject;
+    public ObservationSubject observationSubject;
 
     /**
      * Observer's state updating method as a result of changing subject's state
