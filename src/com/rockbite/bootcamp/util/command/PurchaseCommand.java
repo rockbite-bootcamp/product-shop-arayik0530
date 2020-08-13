@@ -7,7 +7,7 @@ import com.rockbite.bootcamp.util.pool.Poolable;
 /**
  * Command for buying a product from the shop
  */
-public class BuyCommand implements Command, Poolable {
+public class PurchaseCommand implements Command, Poolable {
     /**
      * undo buying method
      *
@@ -27,7 +27,7 @@ public class BuyCommand implements Command, Poolable {
      */
     @Override
     public void execute(Player buyer, int productId) {
-        ShopImpl.getInstance().buy(buyer, productId);
+        ShopImpl.getInstance().purchase(buyer, productId);
     }
 
     /**

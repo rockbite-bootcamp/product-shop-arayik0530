@@ -1,11 +1,9 @@
 package com.rockbite.bootcamp;
 
-import java.io.*;
 import java.util.Objects;
 
 /**
  * Item class is to describe items in the shop
- * It implements Serializable to make deep copy
  */
 public class Item {
 

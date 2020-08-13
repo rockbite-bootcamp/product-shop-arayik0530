@@ -1,10 +1,7 @@
 package com.rockbite.bootcamp;
 
-import java.io.Serializable;
-
 /**
  * Type of Items
- * it also implements Serializable like Item class, because it is part of Item class
  */
 public class ItemType {
 

@@ -2,7 +2,6 @@ package com.rockbite.bootcamp;
 
 import com.rockbite.bootcamp.util.ArgumentsHolder;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -43,11 +42,12 @@ public class ShopImpl implements IShop {
 
     /**
      * with this method the PLayer/buyer buys a product from the shop
-     * @param buyer PLayer
+     *
+     * @param buyer     PLayer
      * @param productId id of Product which is being sold in the shop
      */
     @Override
-    public void buy(final Player buyer, final int productId) {
+    public void purchase(final Player buyer, final int productId) {
         //product with id productId
         final Product product = this.products.get(productId);
 
@@ -91,13 +91,14 @@ public class ShopImpl implements IShop {
         product.setSold(true);
 
         //after checking above that current player can buy current product we can call transfer method
-        for (ArgumentsHolder argumentsHolder: argumentsHolderList) {
+        for (ArgumentsHolder argumentsHolder : argumentsHolderList) {
             this.transfer(argumentsHolder);
         }
     }
 
     /**
      * helper method: transfers the whole item or some count of it from one map to another
+     *
      * @param argumentsHolder holds: mapTo - increasing map, mapFrom - decreasing map,
      *                        requiredItemId - key for entry, count - count of transferring item
      */
@@ -122,10 +123,11 @@ public class ShopImpl implements IShop {
     /**
      * helper method: transfers the whole item or some count of it from one map to another
      * but the decreasing map actually does'nt lose any Item or any count of Item
+     *
      * @param argumentsHolder holds: mapTo - increasing map, mapFrom - decreasing map,
      *                        requiredItemId - key for entry, count - count of transferring item
      */
-    private void transferPayload(final ArgumentsHolder argumentsHolder){
+    private void transferPayload(final ArgumentsHolder argumentsHolder) {
         if (!argumentsHolder.getMapTo().containsKey(argumentsHolder.getRequiredItemId())) {
             Item tempItem = new Item(argumentsHolder.getRequiredItemId(),
                     argumentsHolder.getMapFrom().get(argumentsHolder.getRequiredItemId()).getItemType());
@@ -143,7 +145,8 @@ public class ShopImpl implements IShop {
 
     /**
      * right vice versa method for method buy
-     * @param buyer PLayer
+     *
+     * @param buyer     PLayer
      * @param productId unique id of the Product which is being returned to the shop
      */
     @Override
@@ -175,7 +178,7 @@ public class ShopImpl implements IShop {
         }
 
         //calling transfer method for appropriate items and maps to complete refund method
-        for (ArgumentsHolder argumentsHolder: argumentsHolderList) {
+        for (ArgumentsHolder argumentsHolder : argumentsHolderList) {
             this.transfer(argumentsHolder);
         }
 

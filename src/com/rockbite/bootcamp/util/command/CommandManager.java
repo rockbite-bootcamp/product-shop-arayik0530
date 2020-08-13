@@ -16,10 +16,10 @@ public class CommandManager {
     private int historyCursor = 0;
 
     //pool of buy commands
-    Pool<BuyCommand> buyCommandPool = new Pool<BuyCommand>() {
+    Pool<PurchaseCommand> buyCommandPool = new Pool<PurchaseCommand>() {
         @Override
-        public BuyCommand newObject() {
-            return new BuyCommand();
+        public PurchaseCommand newObject() {
+            return new PurchaseCommand();
         }
     };
 
@@ -33,11 +33,12 @@ public class CommandManager {
 
     /**
      * main method of this class, it represents execution of main command
-     * @param command Command
-     * @param buyer PLayer
+     *
+     * @param command   Command
+     * @param buyer     PLayer
      * @param productId unique id of the Product
      */
-    public void executeCommand(Command command, Player buyer, int productId){
+    public void executeCommand(Command command, Player buyer, int productId) {
         command.execute(buyer, productId);
 
         if (historyCursor < history.size()) {
@@ -52,7 +53,8 @@ public class CommandManager {
 
     /**
      * undo the last command
-     * @param buyer PLayer
+     *
+     * @param buyer     PLayer
      * @param productId unique id of the Product
      */
     public void undo(Player buyer, int productId) {
@@ -66,7 +68,8 @@ public class CommandManager {
 
     /**
      * redo the last undone command
-     * @param buyer Player
+     *
+     * @param buyer     Player
      * @param productId unique id of the Product
      */
     public void redo(Player buyer, int productId) {
@@ -80,7 +83,7 @@ public class CommandManager {
 
     //Getters
 
-    public Pool<BuyCommand> getBuyCommandPool() {
+    public Pool<PurchaseCommand> getBuyCommandPool() {
         return buyCommandPool;
     }
 

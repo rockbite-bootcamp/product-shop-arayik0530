@@ -20,7 +20,7 @@ public class ShopImplUT {
     Player player1 = new Player(1);
 
     //this block initializes products and players fields
-   {
+    {
 
         ItemType typeMoney = new ItemType("money");
         ItemType typeCar = new ItemType("car");
@@ -74,7 +74,7 @@ public class ShopImplUT {
     @Test
     public void callingShopsBuyMethodWithNoneExistingProductIdTest() {
         assertThrows(NullPointerException.class, () -> {
-           shop.buy(player1, 99);
+            shop.purchase(player1, 99);
         });
     }
 
@@ -84,7 +84,7 @@ public class ShopImplUT {
     @Test
     public void callingShopsBuyMethodWithNullPlayerTest() {
         assertThrows(NullPointerException.class, () -> {
-            shop.buy(null, 1);
+            shop.purchase(null, 1);
         });
     }
 
@@ -93,9 +93,9 @@ public class ShopImplUT {
      */
     @Test
     public void callingShopsBuyMethodWithNotEnoughPlayerItemsTest() {
-       player1.getItems().remove(4);
+        player1.getItems().remove(4);
         assertThrows(TransactionFailedException.class, () -> {
-            shop.buy(player1, 1);
+            shop.purchase(player1, 1);
         });
     }
 
@@ -106,7 +106,7 @@ public class ShopImplUT {
     public void callingShopsBuyMethodWithNotEnoughCountPlayerItemsTest() {
         player1.getItems().get(5).setCount(1);
         assertThrows(TransactionFailedException.class, () -> {
-            shop.buy(player1, 1);
+            shop.purchase(player1, 1);
         });
     }
 
@@ -117,7 +117,7 @@ public class ShopImplUT {
     @Test
     public void callingShopsRefundAfterBuyMethodAndCheckShopsStateTest() {
         assert (shop.getAvailableProducts().size() == 1);
-        shop.buy(player1, 1);
+        shop.purchase(player1, 1);
         assert (shop.getAvailableProducts().isEmpty());
         shop.refund(player1, 1);
         assert (shop.getAvailableProducts().size() == 1);

@@ -1,6 +1,6 @@
 package tests;
 
-import com.rockbite.bootcamp.util.command.BuyCommand;
+import com.rockbite.bootcamp.util.command.PurchaseCommand;
 import com.rockbite.bootcamp.util.pool.Pool;
 import org.junit.Test;
 
@@ -11,14 +11,14 @@ import static org.junit.Assert.assertThrows;
  */
 public class PoolUT {
 
-    Pool<BuyCommand> pool = new Pool<BuyCommand>() {
+    Pool<PurchaseCommand> pool = new Pool<PurchaseCommand>() {
         @Override
-        public BuyCommand newObject() {
-            return new BuyCommand();
+        public PurchaseCommand newObject() {
+            return new PurchaseCommand();
         }
     };
 
-    BuyCommand buyCommand = pool.obtain();
+    PurchaseCommand purchaseCommand = pool.obtain();
 
 
     /**
@@ -26,8 +26,8 @@ public class PoolUT {
      */
     @Test(expected = Test.None.class)
     public void poolsFreeMethodTestWthFreeingSameCommandTwice() {
-        pool.free(buyCommand);
-        pool.free(buyCommand);
+        pool.free(purchaseCommand);
+        pool.free(purchaseCommand);
     }
 
     /**
@@ -35,7 +35,7 @@ public class PoolUT {
      */
     @Test
     public void poolsFreeMethodTestWthNullArgument() {
-       assertThrows(NullPointerException.class, () -> {
+        assertThrows(NullPointerException.class, () -> {
             pool.free(null);
         });
     }

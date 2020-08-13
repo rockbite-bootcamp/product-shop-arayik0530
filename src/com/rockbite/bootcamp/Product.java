@@ -1,6 +1,8 @@
 package com.rockbite.bootcamp;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Product which must be sold in the shop

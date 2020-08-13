@@ -11,7 +11,8 @@ public class RefundCommand implements Command, Poolable {
 
     /**
      * undo buying method
-     * @param buyer Player
+     *
+     * @param buyer     Player
      * @param productId unique id of the Product
      */
     @Override
@@ -21,12 +22,13 @@ public class RefundCommand implements Command, Poolable {
 
     /**
      * undo undone buying method
-     * @param buyer Player
+     *
+     * @param buyer     Player
      * @param productId unique id of the Product
      */
     @Override
     public void undo(Player buyer, int productId) {
-        ShopImpl.getInstance().buy(buyer, productId);
+        ShopImpl.getInstance().purchase(buyer, productId);
     }
 
     /**

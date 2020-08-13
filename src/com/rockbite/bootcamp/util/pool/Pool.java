@@ -5,6 +5,7 @@ import java.util.List;
 
 /**
  * Pool ob objects
+ *
  * @param <T> every class that implements Poolable interface
  */
 public abstract class Pool<T extends Poolable> {
@@ -23,10 +24,11 @@ public abstract class Pool<T extends Poolable> {
 
     /**
      * method for obtaining a free object from the pool
+     *
      * @return every class that implements Poolable interface
      */
-    public T obtain(){
-        if(freeObjects.isEmpty()){
+    public T obtain() {
+        if (freeObjects.isEmpty()) {
             T newObj = this.newObject();
             freeObjects.add(newObj);
         }
@@ -40,9 +42,10 @@ public abstract class Pool<T extends Poolable> {
 
     /**
      * method for making free an object that was used and now is free
+     *
      * @param object T every class that implements Poolable interface
      */
-    public void free(T object){
+    public void free(T object) {
         freeObjects.add(object);
         usedObjects.remove(object);
 

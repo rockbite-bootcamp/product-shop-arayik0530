@@ -1,7 +1,7 @@
 package com.rockbite.bootcamp;
 
-import com.rockbite.bootcamp.util.command.BuyCommand;
 import com.rockbite.bootcamp.util.command.CommandManager;
+import com.rockbite.bootcamp.util.command.PurchaseCommand;
 import com.rockbite.bootcamp.util.command.RefundCommand;
 import com.rockbite.bootcamp.util.observer.ObservationSubject;
 import com.rockbite.bootcamp.util.observer.TransactionObserver;
@@ -59,7 +59,6 @@ public class Main {
         product1.getCost().put(shoe_2.getId(), shoe_2);
 
 
-
         shop.addProduct(product1.getId(), product1);
         transactionSubject.setState(shop.getAvailableProducts().size());
 
@@ -80,13 +79,13 @@ public class Main {
 
         CommandManager commandManager = new CommandManager();
 
-        Pool<BuyCommand> buyCommandPool = commandManager.getBuyCommandPool();
+        Pool<PurchaseCommand> buyCommandPool = commandManager.getBuyCommandPool();
         Pool<RefundCommand> refundCommandPool = commandManager.getUndoBuyCommandPool();
 
         try {
-            BuyCommand buyCommand = buyCommandPool.obtain();
-            commandManager.executeCommand(buyCommand, player1, product1.getId());
-            buyCommandPool.free(buyCommand);
+            PurchaseCommand purchaseCommand = buyCommandPool.obtain();
+            commandManager.executeCommand(purchaseCommand, player1, product1.getId());
+            buyCommandPool.free(purchaseCommand);
         } catch (Exception e) {
             e.printStackTrace();
         }
