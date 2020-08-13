@@ -5,14 +5,21 @@ import org.junit.Test;
 
 import static org.junit.Assert.assertThrows;
 
+/**
+ * This class is for testing shop Api
+ */
 public class ShopImplUT {
 
+    //getting shop's instance
     ShopImpl shop = ShopImpl.getInstance();
 
+    //creating a mock product
     Product product1 = new Product();
 
+    //creating a mock player
     Player player1 = new Player(1);
 
+    //this block initializes products and players fields
    {
 
         ItemType typeMoney = new ItemType("money");
@@ -61,12 +68,19 @@ public class ShopImplUT {
     }
 
 
+    /**
+     * testing buy method with non existing productId
+     */
     @Test
     public void callingShopsBuyMethodWithNoneExistingProductIdTest() {
         assertThrows(NullPointerException.class, () -> {
            shop.buy(player1, 99);
         });
     }
+
+    /**
+     * testing buy method with null player
+     */
     @Test
     public void callingShopsBuyMethodWithNullPlayerTest() {
         assertThrows(NullPointerException.class, () -> {
@@ -74,6 +88,9 @@ public class ShopImplUT {
         });
     }
 
+    /**
+     * testing buy method with not enough items to buy the product
+     */
     @Test
     public void callingShopsBuyMethodWithNotEnoughPlayerItemsTest() {
        player1.getItems().remove(4);
@@ -82,6 +99,9 @@ public class ShopImplUT {
         });
     }
 
+    /**
+     * testing buy method with not enough count of items to buy the product
+     */
     @Test
     public void callingShopsBuyMethodWithNotEnoughCountPlayerItemsTest() {
         player1.getItems().get(5).setCount(1);
@@ -90,12 +110,17 @@ public class ShopImplUT {
         });
     }
 
+    /**
+     * testing situation when refund method is called after buy method
+     * the shop's state must be the same
+     */
     @Test
     public void callingShopsRefundAfterBuyMethodAndCheckShopsStateTest() {
         assert (shop.getAvailableProducts().size() == 1);
         shop.buy(player1, 1);
-        assert (shop.getAvailableProducts().size() == 0);
+        assert (shop.getAvailableProducts().isEmpty());
         shop.refund(player1, 1);
         assert (shop.getAvailableProducts().size() == 1);
     }
+
 }
